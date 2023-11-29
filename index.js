@@ -44,10 +44,28 @@ async function run() {
     })
 
     // Gets
+    app.get('/users',async(req,res)=>{
+      const page = req.query.page
+      const email = req.query.email
+      const filter = req.query.filter
+      let query = {
+        
+      }
+      if (filter !== '') {
+         query = {
+          status: filter
+        }
+      }
+      const dataPerPage = 5
+      const skip = page*dataPerPage
+      const dataCount= await usersCollection.estimatedDocumentCount()
+      const result = await usersCollection.find(query).limit(dataPerPage).skip(skip).toArray()
+      res.send({result,dataCount})
+    })
+
     app.get('/user',async(req,res)=>{
       const email = req.query.email
       const result = await usersCollection.findOne({email: email})
-      
       res.send(result)
     })
 
@@ -66,14 +84,28 @@ async function run() {
         query = {
           requesterEmail:email
         }
-        
       }else{
         query = {
           status: filter,
           requesterEmail:email
         }
       }
-      
+      const dataPerPage = 5
+      const skip = page*dataPerPage
+      const dataCount= await DonatReqsCollection.estimatedDocumentCount()
+      const result = await DonatReqsCollection.find(query).limit(dataPerPage).skip(skip).toArray()
+      res.send({result,dataCount})
+    })
+
+    app.get('/all-donation-reqs',async(req,res)=>{
+      const page = req.query.page
+      const filter = req.query.filter
+      let query = {}
+      if (filter !== '') {
+         query = {
+          status: filter
+        }
+      }
       const dataPerPage = 5
       const skip = page*dataPerPage
       const dataCount= await DonatReqsCollection.estimatedDocumentCount()
@@ -93,16 +125,21 @@ async function run() {
     })
 
     // Puts
+
+
     app.patch('/user',async(req,res)=>{
       const user = req.body
       const email = req.query.email
       const query = {
         email: email
       }
+      const option = {
+        upsert : true
+      }
       const updateDoc = {
         $set: {...user}
       };
-      const result =await usersCollection.updateOne(query,updateDoc)
+      const result =await usersCollection.updateOne(query,updateDoc,option)
       res.send(result)
     })
 
