@@ -27,6 +27,7 @@ const client = new MongoClient(uri, {
 async function run() {
   const usersCollection = client.db('lifeflow').collection('users')
   const DonatReqsCollection = client.db('lifeflow').collection('donation-requests')
+  const postsCollection = client.db('lifeflow').collection('posts')
   try {
     // await client.connect();
 
@@ -43,7 +44,31 @@ async function run() {
       res.send(result)
     })
 
+    app.post('/post',async(req,res)=>{
+      const post = req.body
+      const result = await postsCollection.insertOne(post)
+      res.send(result)
+    })
+
     // Gets
+    app.get('/posts',async(req,res)=>{
+      const page = req.query.page
+      const filter = req.query.filter
+      let query = {
+        
+      }
+      if (filter !== '') {
+         query = {
+          status: filter
+        }
+      }
+      const dataPerPage = 5
+      const skip = page*dataPerPage
+      const result = await postsCollection.find(query).limit(dataPerPage).skip(skip).toArray()
+      const dataCount = await postsCollection.estimatedDocumentCount()
+      res.send({result,dataCount})
+    })
+
     app.get('/users',async(req,res)=>{
       const page = req.query.page
       const email = req.query.email
@@ -125,7 +150,22 @@ async function run() {
     })
 
     // Puts
-
+    app.patch('/posts',async(req,res)=>{
+      const post = req.body
+      const id = req.query.id
+      const query = {
+        _id: new ObjectId(id)
+      }
+      const option = {
+        upsert : true
+      }
+      const updateDoc = {
+        $set: {...post}
+      };
+      const result =await postsCollection.updateOne(query,updateDoc,option)
+      console.log(query,updateDoc)
+      res.send(result)
+    })
 
     app.patch('/user',async(req,res)=>{
       const user = req.body
@@ -165,6 +205,15 @@ async function run() {
         _id: new ObjectId(id)
       }
       const result = await DonatReqsCollection.deleteOne(filter)
+      res.send(result)
+    })
+
+    app.delete('/post/:id',async(req,res)=>{
+      const id = req.params.id
+      const filter = {
+        _id: new ObjectId(id)
+      }
+      const result = await postsCollection.deleteOne(filter)
       res.send(result)
     })
 
