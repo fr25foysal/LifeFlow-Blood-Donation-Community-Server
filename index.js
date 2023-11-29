@@ -59,8 +59,26 @@ async function run() {
 
     app.get('/donation-reqs',async(req,res)=>{
       const email = req.query.email
-      const result = await DonatReqsCollection.find({requesterEmail:email}).toArray()
-      res.send(result)
+      const page = req.query.page
+      const filter = req.query.filter
+      let query = {}
+      if (filter === '') {
+        query = {
+          requesterEmail:email
+        }
+        
+      }else{
+        query = {
+          status: filter,
+          requesterEmail:email
+        }
+      }
+      
+      const dataPerPage = 5
+      const skip = page*dataPerPage
+      const dataCount= await DonatReqsCollection.estimatedDocumentCount()
+      const result = await DonatReqsCollection.find(query).limit(dataPerPage).skip(skip).toArray()
+      res.send({result,dataCount})
     })
 
     app.get('/donation-req/:id',async(req,res)=>{
