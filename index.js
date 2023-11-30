@@ -3,10 +3,40 @@ const app = express()
 require('dotenv').config()
 const cors = require('cors')
 const port = process.env.PORT || 5000
+const jwt = require('jsonwebtoken')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 app.use(express.json())
-app.use(cors())
+app.use(cors({
+  credentials: true
+}))
+
+// Veryfy JWT by midleware
+const verifyToken = (req,res,next)=>{
+  const token  = req.headers?.authorization.split(' ')[1]
+  if (!req.headers.authorization) {
+    return res.status(401).send({'message': 'Unauthorized Access'})
+  }
+  jwt.verify(token,process.env.SECRET,(err,decoded)=>{
+    if (err) {
+      return res.status(401).send({'message': 'Unauthorized Access'})
+    }
+    req.decoded = decoded
+    next()
+  })
+ 
+}
+// verify admin
+const verifyAdmin = async(req,res,next)=>{
+  const email = req.decoded.email
+  const filter = {email: email}
+  const user = await userCollection.findOne(filter)
+  const isadmin = user?.role ==='admin'
+  if (!isadmin) {
+    return res.status(403).send({'message': 'Forbidden Access'})
+  }
+  next()
+}
 
 app.get('/', (req, res) => {
   res.send('LifeFlow Server!')
@@ -283,6 +313,13 @@ async function run() {
       }
       const result = await postsCollection.deleteOne(filter)
       res.send(result)
+    })
+
+    // JWT
+    app.post('/jwt',async(req,res)=>{
+      const user = req.body
+      const token = jwt.sign(user,process.env.SECRET,{expiresIn: '1h'})
+      res.send({token})
     })
 
 
