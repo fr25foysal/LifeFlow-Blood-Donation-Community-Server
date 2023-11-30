@@ -87,6 +87,55 @@ async function run() {
       const result = await usersCollection.find(query).limit(dataPerPage).skip(skip).toArray()
       res.send({result,dataCount})
     })
+    
+    app.get('/donors',async(req,res)=>{
+      const page = req.query.page
+      const email = req.query.email || null
+      const blood = req.query.blood || null
+      const district = req.query.district || null
+      const upazila = req.query.upazila || null
+      const filter = req.query.filter || null
+      let query = {
+        role: 'donor'
+      }
+      if (filter !== null) {
+         query = {
+          status: filter,
+          role: 'donor'
+        }
+      }else if (blood !== null) {
+        query = {...query,blood:blood} 
+      }else if (district !== null) {
+        query = {
+          status: filter,
+          role: 'donor',
+          email: email,
+          blood : blood,
+          district: district
+        }
+      }else if (upazila !== null) {
+        query = {
+          status: filter,
+          role: 'donor',
+          email: email,
+          blood : blood,
+          district: district,
+          upazila: upazila
+        }
+      }else if (email !== null) {
+        query = {
+          role: 'donor',
+          email: email
+        }
+      }
+
+      const dataPerPage = 5
+      const skip = page*dataPerPage
+      const dataCount= await usersCollection.estimatedDocumentCount()
+      const result = await usersCollection.find(query).limit(dataPerPage).skip(skip).toArray()
+      res.send({result,dataCount})
+      console.log(query);
+    })
 
     app.get('/user',async(req,res)=>{
       const email = req.query.email
