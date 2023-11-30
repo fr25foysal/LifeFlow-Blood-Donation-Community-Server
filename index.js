@@ -130,20 +130,28 @@ async function run() {
 
     app.get('/all-donation-reqs',async(req,res)=>{
       const page = req.query.page
+      const dataPerPage =parseInt(req.query.perPage || 5) 
       const filter = req.query.filter
       let query = {}
       if (filter !== '') {
          query = {
           status: filter
         }
-      }
-      const dataPerPage = 5
+      }  
       const skip = page*dataPerPage
       const dataCount= await DonatReqsCollection.estimatedDocumentCount()
       const result = await DonatReqsCollection.find(query).limit(dataPerPage).skip(skip).toArray()
       res.send({result,dataCount})
     })
 
+    app.get('/single-donation-req/:id',async(req,res)=>{
+      const id = req.params.id
+      const filter = {
+        _id : new ObjectId(id)
+      }
+      const result = await DonatReqsCollection.findOne(filter)
+      res.send(result)
+    })
     app.get('/donation-req/:id',async(req,res)=>{
       const id = req.params.id
       const email = req.query.email
@@ -155,6 +163,13 @@ async function run() {
       res.send(result)
     })
 
+    app.get('/dashboard-stats',async(req,res)=>{
+      const totalUsers = await usersCollection.estimatedDocumentCount()
+      const totalDonations = await DonatReqsCollection.estimatedDocumentCount()
+      // const totalFunding = await usersCollection.estimatedDocumentCount()
+      const totalFunding = 99
+      res.send({totalUsers,totalDonations,totalFunding})
+    })
     // Puts
     app.patch('/posts',async(req,res)=>{
       const post = req.body
