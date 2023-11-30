@@ -94,6 +94,12 @@ async function run() {
       res.send(result)
     })
 
+    app.get('/blog',async(req,res)=>{
+      const id = req.query.id
+      const result = await postsCollection.findOne({_id: new ObjectId(id)})
+      res.send(result)
+    })
+
     app.get('/dashboard-donation-reqs',async(req,res)=>{
       const email = req.query.email
       const result = await DonatReqsCollection.find({requesterEmail:email}).limit(3).toArray()
@@ -162,8 +168,7 @@ async function run() {
       const updateDoc = {
         $set: {...post}
       };
-      const result =await postsCollection.updateOne(query,updateDoc,option)
-      console.log(query,updateDoc)
+      const result =await postsCollection.updateOne(query,updateDoc)
       res.send(result)
     })
 
@@ -185,16 +190,15 @@ async function run() {
 
     app.patch('/update-request',async(req,res)=>{
       const reqData = req.body
-      const email = req.query.email
+      const id = req.query.id
       const query = {
-        requesterEmail: email
+        _id: new ObjectId(id)
       }
       const updateDoc = {
         $set: {...reqData}
       };
       const result =await DonatReqsCollection.updateOne(query,updateDoc)
       res.send(result)
-      console.log(query,updateDoc);
     })
 
     // Delete
