@@ -11,7 +11,7 @@ app.use(cors({
   credentials: true
 }))
 
-// const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.thkxg3l.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.thkxg3l.mongodb.net/?retryWrites=true&w=majority`;
 
 
 // Veryfy JWT by midleware
@@ -129,46 +129,57 @@ async function run() {
       const district = req.query.district || null
       const upazila = req.query.upazila || null
       const filter = req.query.filter || null
+      // console.log(email, district, upazila, filter,blood);
+      console.log(page);
       let query = {
-        role: 'donor'
+          status: filter,
+          role: 'donor',
+          // blood : '',
+          // district: district,
+          // upazila: upazila,
+          // email: email
       }
-      if (filter !== null) {
-         query = {
-          status: filter,
-          role: 'donor'
-        }
-      }else if (blood !== null) {
-        query = {...query,blood:blood} 
-      }else if (district !== null) {
-        query = {
-          status: filter,
-          role: 'donor',
-          email: email,
-          blood : blood,
-          district: district
-        }
-      }else if (upazila !== null) {
-        query = {
-          status: filter,
-          role: 'donor',
-          email: email,
-          blood : blood,
-          district: district,
-          upazila: upazila
-        }
-      }else if (email !== null) {
-        query = {
-          role: 'donor',
-          email: email
-        }
-      }
+      // let query = {
+      //   role: 'donor'
+      // }
+      // if (filter !== null) {
+      //    query = {
+      //     status: filter,
+      //     role: 'donor'
+      //   }
+      // }else if (blood !== null) {
+      //   query = {...query,blood:blood} 
+      // }else if (district !== null) {
+      //   query = {
+      //     status: filter,
+      //     role: 'donor',
+      //     email: email,
+      //     blood : blood,
+      //     district: district
+      //   }
+      // }else if (upazila !== null) {
+      //   query = {
+      //     status: filter,
+      //     role: 'donor',
+      //     email: email,
+      //     blood : blood,
+      //     district: district,
+      //     upazila: upazila
+      //   }
+      // }else if (email !== null) {
+      //   query = {
+      //     role: 'donor',
+      //     email: email
+      //   }
+      // }
 
       const dataPerPage = 5
       const skip = page*dataPerPage
-      const dataCount= await usersCollection.estimatedDocumentCount()
+      
       const result = await usersCollection.find(query).limit(dataPerPage).skip(skip).toArray()
+      const dataCount= result.length
       res.send({result,dataCount})
-      console.log(query);
+      console.log(dataCount);
     })
 
     app.get('/user',async(req,res)=>{
